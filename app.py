@@ -81,11 +81,9 @@ def get_user():
                     username = value[0]
                     password = value[1]
                     pyperclip.copy(username)
-                    action = input(
-                        f"Username for {program}: {username} copied to clipboard. Press 'Enter' to copy password to clipboard")
+                    action = input("Username for {}: {} copied to clipboard. Press 'Enter' to copy password to clipboard").format(program, username)
                     pyperclip.copy(password)
-                    action = input(
-                        f"Password for {program} copied to clipboard. Press 'Enter' to clear clipboard")
+                    action = input("Password for {} copied to clipboard. Press 'Enter' to clear clipboard").format(program)
                     pyperclip.copy("")
                     return
             print("Program not found from credentials")
@@ -103,10 +101,10 @@ def add_program():
         new_program = input("Enter new program name: ").lower()
         for program in programs_list:
             if program.strip() == new_program.strip():
-                print(f"Credentials for {new_program} already exists")
+                print("Credentials for {} already exists").format(new_program)
                 return
         else:
-            programs.write(f"{new_program}\n")
+            programs.write(new_program + "\n")
             return add_credentials(new_program)
 
 
@@ -185,7 +183,7 @@ def del_program():
         for i, p in enumerate(programs_list):
             if p.strip() == program.strip():
                 programs_list.pop(i)
-                print(f"Program {p.strip()} has been removed")
+                print("Program {} has been removed").format(p.strip())
     with open('programs.txt', 'w') as programs:
         for p in programs_list:
             programs.write(p)
@@ -203,43 +201,100 @@ def del_credential(program):
                 if k.strip() == program:
                     del credentials[k]
                     cred = credentials
-                    print(f"Credentials for {program} has been removed")
+                    print("Credentials for {} has been removed").format(program)
         with open("secrets.p", "wb") as secrets_p:
             pickle.dump(credentials, secrets_p)
     except EOFError:
-        print(f"No credentials for {program} found")
+        print("No credentials for {} found").format(program)
 
-# def change_password():
-#    """change existing password"""
-#    program = input("Enter program name: ").lower()
-#    with
+def change_password():
+    """change existing password"""
+    progs = {}
+    program = input("Enter program name: ").lower()
+    try:
+        with open('secrets.p', 'rb') as secrets_p:
+            programs = pickle.load(secrets_p)
+            credentials = programs.get(program)
+            old_pass = input("Enter old password: ")
+            if old_pass == credentials[1]:
+                new_pass = input("Enter new password: ")
+                credentials[1] = new_pass
+                programs[program] = credentials
+                progs = programs
+            else:
+                print("Password for {} didn't match").format(program)
+                return
+    except EOFError:
+        print("No credentials for {} found").format(program)
+        return
+    with open ('secrets.p', 'wb') as secrets_p:
+        pickle.dump(progs, secrets_p)
 
 
 def change_username():
     """change existing username"""
-    pass
+    progs = {}
+    program = input("Enter program name: ").lower()
+    try:
+        with open('secrets.p', 'rb') as secrets_p:
+            programs = pickle.load(secrets_p)
+            credentials = programs.get(program)
+            new_user = input("Enter new username: ")
+            credentials[0] = new_user
+            programs[program] = credentials
+            progs = programs
+    except EOFError:
+        print("No credentials for {} found").format(program)
+    with open ('secrets.p', 'wb') as secrets_p:
+        pickle.dump(progs, secrets_p)
 
+
+def change_credentials():
+    """change both existing credentials"""
+    progs = {}
+    program = input("Enter program name: ").lower()
+    try:
+        with open('secrets.p', 'rb') as secrets_p:
+            programs = pickle.load(secrets_p)
+            credentials = programs.get(program)
+            old_pass = input("Enter old password: ")
+            if old_pass == credentials[1]:
+                new_user = input("Enter new username: ")
+                new_pass = input("Enter new password: ")
+                credentials[0], credentials[1] = new_user, new_pass
+                programs[program] = credentials
+                progs = programs
+            else:
+                print("Password for {} didn't match").format(program)
+                return
+    except EOFError:
+        print("No credentials for {} found").format(program)
+        return
+    with open ('secrets.p', 'wb') as secrets_p:
+        pickle.dump(progs, secrets_p)
 
 def command(args):
 
     commands = {"reset_masterkey": reset_masterkey, "set_masterkey": set_masterkey,
                 "check_for_masterkey": check_for_masterkey, "add_program": add_program,
                 "list_programs": list_programs, "list_credentials": list_credentials,
-                "clear": clear, "get_user": get_user, "del_program": del_program}
+                "clear": clear, "get_user": get_user, "del_program": del_program,
+                "change_password": change_password, "change_username": change_username,
+                "change_credentials": change_credentials}
 
     for c in range(1, len(args)):
         if args[c] == "commands":
             for i in commands.keys():
-                print(f"{i}")
+                print(i)
             break
         try:
             commands[args[c]]()
         except KeyError:
-            print(f"{args[c]} is not a valid command")
+            print("{} is not a valid command, get list of commands with 'commands'").format(args[c])
 
 
 if __name__ == "__main__":
-
+    
     command(sys.argv)
 
     # reset_masterkey()
