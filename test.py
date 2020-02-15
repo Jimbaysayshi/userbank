@@ -5,3 +5,7 @@ def som():
 
 
 print(som())
+
+with open("programs.txt", "r", encoding='utf-8') as programs:
+
+    print([x for x in programs.readlines()])
